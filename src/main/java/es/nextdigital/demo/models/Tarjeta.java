@@ -6,6 +6,7 @@ public class Tarjeta {
     private String tipo;
     private int max;
     private int creditoEntregado;
+    private int estado;
     
     public Cuenta getCuenta() {
         return cuenta;
@@ -24,5 +25,11 @@ public class Tarjeta {
     }
     public void setCreditoEntregado(int creditoEntregado) {
         this.creditoEntregado = creditoEntregado;
+    }
+    public int getEstado() {
+        return estado;
+    }
+    public void setEstado(int estado) {
+        this.estado = estado;
     }
 }

@@ -14,34 +14,51 @@ public class nextDigitalApi {
     private final String TRANSFERENCIAS = "SAL";
     private final String DEBITO = "DEB";
 
-    private String realizarTransferencia(Cuenta cuentaOrigen, String iban, Double cantidad){
+    private String activarTarjeta(Tarjeta tarjeta){
+
+        //Estado 0: Desactivada, Estado 1: Activada
+        if(tarjeta.getEstado() == 0){
+            tarjeta.setEstado(1);
+        }
+
+        return "Tarjeta activada con exito";
+    }
+
+    private String realizarTransferencia(Tarjeta tarjeta, String iban, Double cantidad){
 
         String salida = "error";
 
-        if(validarIban(iban)){
-            Cuenta cuentaDestino = buscarCuenta(iban);
-            if(cuentaOrigen.getCodBanco() == cuentaDestino.getCodBanco()){
-                cuentaOrigen.setSaldo(cuentaOrigen.getSaldo() - cantidad);
-                cuentaDestino.setSaldo(cuentaDestino.getSaldo() + cantidad);
-                salida = "Transferencia realizada correctamente";
-            }
-            else{
-                if(revisarComision(cuentaDestino.getCodBanco())){
-                    //Buscar la comision pertinente en BBDD, en este caso hardcodeamos
-                    Double comision = 10.0;
-                    cuentaOrigen.setSaldo(cuentaOrigen.getSaldo() - cantidad - comision);
+        if(tarjeta.getEstado() == 1){
+
+            if(validarIban(iban)){
+                Cuenta cuentaDestino = buscarCuenta(iban);
+                if(tarjeta.getCuenta().getCodBanco() == cuentaDestino.getCodBanco()){
+                    tarjeta.getCuenta().setSaldo(tarjeta.getCuenta().getSaldo() - cantidad);
                     cuentaDestino.setSaldo(cuentaDestino.getSaldo() + cantidad);
                     salida = "Transferencia realizada correctamente";
                 }
                 else{
-                    cuentaOrigen.setSaldo(cuentaOrigen.getSaldo() - cantidad);
-                    cuentaDestino.setSaldo(cuentaDestino.getSaldo() + cantidad);
-                    salida = "Transferencia realizada correctamente";
+                    if(revisarComision(cuentaDestino.getCodBanco())){
+                        //Buscar la comision pertinente en BBDD, en este caso hardcodeamos
+                        Double comision = 10.0;
+                        tarjeta.getCuenta().setSaldo(tarjeta.getCuenta().getSaldo() - cantidad - comision);
+                        cuentaDestino.setSaldo(cuentaDestino.getSaldo() + cantidad);
+                        salida = "Transferencia realizada correctamente";
+                    }
+                    else{
+                        tarjeta.getCuenta().setSaldo(tarjeta.getCuenta().getSaldo() - cantidad);
+                        cuentaDestino.setSaldo(cuentaDestino.getSaldo() + cantidad);
+                        salida = "Transferencia realizada correctamente";
+                    }
                 }
             }
+            else{
+                salida = "IBAN incorrecto";
+            }
+            
         }
         else{
-            salida = "IBAN incorrecto";
+            salida = "La tarjeta no está acivada";
         }
 
         return salida;
@@ -66,12 +83,20 @@ public class nextDigitalApi {
 
     private String ingresarDinero(Tarjeta tarjeta, int cantidad, int entidadCajero){
         String salida = "error";
-        if(entidadCajero != tarjeta.getCuenta().getCodBanco()){
-            salida = "La entidad del cajero no correspone con la entidad de la cuenta";
+        
+        if(tarjeta.getEstado() == 1){
+
+            if(entidadCajero != tarjeta.getCuenta().getCodBanco()){
+                salida = "La entidad del cajero no correspone con la entidad de la cuenta";
+            }
+            else{
+                tarjeta.getCuenta().setSaldo(tarjeta.getCuenta().getSaldo() + cantidad);
+                salida = "El ingreso se ha completado correctamente";
+            }
+
         }
         else{
-            tarjeta.getCuenta().setSaldo(tarjeta.getCuenta().getSaldo() + cantidad);
-            salida = "El ingreso se ha completado correctamente";
+            salida = "La tarjeta no está acivada";
         }
 
         return salida;
@@ -81,17 +106,24 @@ public class nextDigitalApi {
 
         String salida = "error";
 
-        if(tarjeta.getTipo().equals(DEBITO)){
-            if(comprobarSaldo(cantidad, tarjeta.getCuenta().getSaldo())){
-                tarjeta.getCuenta().setSaldo(tarjeta.getCuenta().getSaldo()-Double.valueOf(cantidad));
-                salida = "Se ha retirado dinero de su tarjeta de debito satisfactoriamente";
+        if(tarjeta.getEstado() == 1){
+
+            if(tarjeta.getTipo().equals(DEBITO)){
+                if(comprobarSaldo(cantidad, tarjeta.getCuenta().getSaldo())){
+                    tarjeta.getCuenta().setSaldo(tarjeta.getCuenta().getSaldo()-Double.valueOf(cantidad));
+                    salida = "Se ha retirado dinero de su tarjeta de debito satisfactoriamente";
+                }
             }
+            else{
+                if(comprobarMax(cantidad, tarjeta.getMax(), tarjeta.getCreditoEntregado())){
+                    tarjeta.getCuenta().setSaldo(tarjeta.getCuenta().getSaldo()-Double.valueOf(cantidad));
+                    salida = "Se ha retirado dinero de su tarjeta de credito satisfactoriamente";
+                }
+            }
+            
         }
         else{
-            if(comprobarMax(cantidad, tarjeta.getMax(), tarjeta.getCreditoEntregado())){
-                tarjeta.getCuenta().setSaldo(tarjeta.getCuenta().getSaldo()-Double.valueOf(cantidad));
-                salida = "Se ha retirado dinero de su tarjeta de credito satisfactoriamente";
-            }
+            salida = "La tarjeta no está acivada";
         }
 
         return salida;
@@ -120,24 +152,31 @@ public class nextDigitalApi {
         return comprobar;
     }
     
-    private List<String> consultarMovimientos (Cuenta cuenta, String codigo){
+    private List<String> consultarMovimientos (Tarjeta tarjeta, String codigo){
 
         List<String> salida = new ArrayList<String>();
 
-        if(codigo.equals(INGRESO)){
-            salida = movimientosToString(cuenta.getMovimientos().getListaIngresos(), "Ingreso: ");
+        if(tarjeta.getEstado() == 1){
+
+            if(codigo.equals(INGRESO)){
+                salida = movimientosToString(tarjeta.getCuenta().getMovimientos().getListaIngresos(), "Ingreso: ");
+            }
+            else if (codigo.equals(RETIRO)){
+                salida = movimientosToString(tarjeta.getCuenta().getMovimientos().getListaRetiros(), "Retiro: ");
+            }
+            else if (codigo.equals(COMISION)){
+                salida = movimientosToString(tarjeta.getCuenta().getMovimientos().getListaComisiones(), "Comision: ");
+            }
+            else if (codigo.equals(TRANSFERENCIAE)){
+                salida = movimientosToString(tarjeta.getCuenta().getMovimientos().getListaTransferenciaEntrantes(), "Transferencias Entrantes: ");
+            }
+            else if (codigo.equals(TRANSFERENCIAS)){
+                salida = movimientosToString(tarjeta.getCuenta().getMovimientos().getListaTransferenciaSalientes(), "Transferencias Salientes: ");
+            }
+            
         }
-        else if (codigo.equals(RETIRO)){
-            salida = movimientosToString(cuenta.getMovimientos().getListaRetiros(), "Retiro: ");
-        }
-        else if (codigo.equals(COMISION)){
-            salida = movimientosToString(cuenta.getMovimientos().getListaComisiones(), "Comision: ");
-        }
-        else if (codigo.equals(TRANSFERENCIAE)){
-            salida = movimientosToString(cuenta.getMovimientos().getListaTransferenciaEntrantes(), "Transferencias Entrantes: ");
-        }
-        else if (codigo.equals(TRANSFERENCIAS)){
-            salida = movimientosToString(cuenta.getMovimientos().getListaTransferenciaSalientes(), "Transferencias Salientes: ");
+        else{
+            salida.add("La tarjeta no está acivada");
         }
         return salida;
     }

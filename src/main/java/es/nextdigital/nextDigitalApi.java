@@ -14,6 +14,56 @@ public class nextDigitalApi {
     private final String TRANSFERENCIAS = "SAL";
     private final String DEBITO = "DEB";
 
+    private String realizarTransferencia(Cuenta cuentaOrigen, String iban, Double cantidad){
+
+        String salida = "error";
+
+        if(validarIban(iban)){
+            Cuenta cuentaDestino = buscarCuenta(iban);
+            if(cuentaOrigen.getCodBanco() == cuentaDestino.getCodBanco()){
+                cuentaOrigen.setSaldo(cuentaOrigen.getSaldo() - cantidad);
+                cuentaDestino.setSaldo(cuentaDestino.getSaldo() + cantidad);
+                salida = "Transferencia realizada correctamente";
+            }
+            else{
+                if(revisarComision(cuentaDestino.getCodBanco())){
+                    //Buscar la comision pertinente en BBDD, en este caso hardcodeamos
+                    Double comision = 10.0;
+                    cuentaOrigen.setSaldo(cuentaOrigen.getSaldo() - cantidad - comision);
+                    cuentaDestino.setSaldo(cuentaDestino.getSaldo() + cantidad);
+                    salida = "Transferencia realizada correctamente";
+                }
+                else{
+                    cuentaOrigen.setSaldo(cuentaOrigen.getSaldo() - cantidad);
+                    cuentaDestino.setSaldo(cuentaDestino.getSaldo() + cantidad);
+                    salida = "Transferencia realizada correctamente";
+                }
+            }
+        }
+        else{
+            salida = "IBAN incorrecto";
+        }
+
+        return salida;
+    }
+
+    private boolean revisarComision(int codBanco){
+        //Buscar en BBDD si el banco tiene comision
+        return true;
+    }
+
+    private Cuenta buscarCuenta(String iban){
+        //Busqueda en BBDD de la cuenta asociada al IBAN proporcionado
+        Cuenta cuentaDestino = new Cuenta();
+        return cuentaDestino;
+    }
+
+    private boolean validarIban(String iban){
+        //Aquí va un algoritmo que verifique el IBAN
+        boolean salida = true;
+        return salida;
+    }
+
     private String ingresarDinero(Tarjeta tarjeta, int cantidad, int entidadCajero){
         String salida = "error";
         if(entidadCajero != tarjeta.getCuenta().getCodBanco()){

@@ -5,6 +5,7 @@ public class Cuenta {
     private Double saldo;
     private Movimientos movimientos;
     private int codBanco;
+    private String iban;
 
     public int getCodBanco() {
         return codBanco;
@@ -17,5 +18,8 @@ public class Cuenta {
     }
     public Movimientos getMovimientos() {
         return movimientos;
+    }
+    public String getIban() {
+        return iban;
     }
 }

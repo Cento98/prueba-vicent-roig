@@ -1,6 +1,7 @@
 package es.nextdigital;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import es.nextdigital.demo.models.Cuenta;
 import es.nextdigital.demo.models.Tarjeta;
@@ -13,6 +14,19 @@ public class nextDigitalApi {
     private final String TRANSFERENCIAE = "ENT";
     private final String TRANSFERENCIAS = "SAL";
     private final String DEBITO = "DEB";
+
+    private String canviarPin(Tarjeta tarjeta, int nuevoPin){
+        String salida;
+
+        if(tarjeta.getEstado() == 1){
+            tarjeta.setPin(Base64.getEncoder().encodeToString(String.valueOf(nuevoPin).getBytes()));
+            salida = "Pin cambiado correctamente";
+        }
+        else{
+            salida = "La tarjeta no está acivada";
+        }
+        return salida;
+    }
 
     private String activarTarjeta(Tarjeta tarjeta){
 

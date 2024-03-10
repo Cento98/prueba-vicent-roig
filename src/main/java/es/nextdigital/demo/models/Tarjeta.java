@@ -1,5 +1,7 @@
 package es.nextdigital.demo.models;
 
+import java.util.Base64;
+
 public class Tarjeta {
     
     private Cuenta cuenta;
@@ -7,6 +9,7 @@ public class Tarjeta {
     private int max;
     private int creditoEntregado;
     private int estado;
+    private String pin;
     
     public Cuenta getCuenta() {
         return cuenta;
@@ -31,5 +34,11 @@ public class Tarjeta {
     }
     public void setEstado(int estado) {
         this.estado = estado;
+    }
+    public String getPin() {
+        return pin;
+    }
+    public void setPin(String pin) {
+        this.pin = pin;
     }
 }

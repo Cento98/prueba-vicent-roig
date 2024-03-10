@@ -15,7 +15,7 @@ public class nextDigitalApi {
     private final String TRANSFERENCIAS = "SAL";
     private final String DEBITO = "DEB";
 
-    private String canviarPin(Tarjeta tarjeta, int nuevoPin){
+    public String canviarPin(Tarjeta tarjeta, int nuevoPin){
         String salida;
 
         if(tarjeta.getEstado() == 1){
@@ -28,7 +28,7 @@ public class nextDigitalApi {
         return salida;
     }
 
-    private String activarTarjeta(Tarjeta tarjeta){
+    public String activarTarjeta(Tarjeta tarjeta){
 
         //Estado 0: Desactivada, Estado 1: Activada
         if(tarjeta.getEstado() == 0){
@@ -38,7 +38,7 @@ public class nextDigitalApi {
         return "Tarjeta activada con exito";
     }
 
-    private String realizarTransferencia(Tarjeta tarjeta, String iban, Double cantidad){
+    public String realizarTransferencia(Tarjeta tarjeta, String iban, Double cantidad){
 
         String salida = "error";
 
@@ -95,7 +95,7 @@ public class nextDigitalApi {
         return salida;
     }
 
-    private String ingresarDinero(Tarjeta tarjeta, int cantidad, int entidadCajero){
+    public String ingresarDinero(Tarjeta tarjeta, int cantidad, int entidadCajero){
         String salida = "error";
         
         if(tarjeta.getEstado() == 1){
@@ -116,7 +116,7 @@ public class nextDigitalApi {
         return salida;
     }
 
-    private String sacarDinero(Tarjeta tarjeta, int cantidad){
+    public String sacarDinero(Tarjeta tarjeta, int cantidad){
 
         String salida = "error";
 
@@ -166,7 +166,7 @@ public class nextDigitalApi {
         return comprobar;
     }
     
-    private List<String> consultarMovimientos (Tarjeta tarjeta, String codigo){
+    public List<String> consultarMovimientos (Tarjeta tarjeta, String codigo){
 
         List<String> salida = new ArrayList<String>();
 
